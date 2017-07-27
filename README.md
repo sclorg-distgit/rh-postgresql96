@@ -1,0 +1,1 @@
+# rh-postgresql96

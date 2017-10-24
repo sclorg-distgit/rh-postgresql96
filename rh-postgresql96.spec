@@ -20,7 +20,7 @@
 Summary: Package that installs %{scl}
 Name: %{scl}
 Version: 3.0
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0: README
@@ -60,6 +60,10 @@ Collection or packages depending on %{scl} Software Collection.
 
 %package scldevel
 Summary: Package shipping development files for %{scl}
+%if 0%{?rhel} == 6
+# implicitly required on RHEL7+, rhbz#1478831
+Requires: %scl_runtime
+%endif
 
 %description scldevel
 Package shipping development files, especially usefull for development of
@@ -95,6 +99,8 @@ elseif var == "JAVACONFDIRS" then                               \
     print(rpm.expand('export %1=%2:${%1:-/etc/java}'))          \
 elseif var == "XDG_CONFIG_DIRS" then                            \
     print(rpm.expand('export %1=%2:${%1:-/etc/xdg}'))           \
+elseif var == "XDG_DATA_DIRS" then                              \
+    print(rpm.expand('export %1=%2:${%1:-/usr/local/share:/usr/share}')) \
 else                                                            \
     print(rpm.expand('export %1=%2${%1:+:$%1}'))                \
 end                                                             \
@@ -152,10 +158,6 @@ prepend-path X_SCLS %{scl}
 %_compat_scl_env_adjust MANPATH %_mandir
 # For Java Packages Tools to locate java.conf
 %_compat_scl_env_adjust JAVACONFDIRS %_sysconfdir/java
-# For XMvn to locate its configuration file(s)
-%_compat_scl_env_adjust XDG_CONFIG_DIRS %_sysconfdir/xdg
-# For systemtap
-%_compat_scl_env_adjust XDG_DATA_DIRS %_datadir
 # For pkg-config
 %_compat_scl_env_adjust PKG_CONFIG_PATH %_libdir/pkgconfig
 EOF
@@ -224,6 +226,10 @@ restorecon -R %{_localstatedir} >/dev/null 2>&1 || :
 
 
 %changelog
+* Mon Sep 04 2017 Pavel Raiskup <praiskup@redhat.com> - 3.0-10
+- scldevel subpackage to depend on runtime subpackage
+- don't set XDG_* variables, per rhbz#1464084
+
 * Mon Jun 26 2017 Pavel Raiskup <praiskup@redhat.com> - 3.0-9
 - require contrib-syspaths by syspaths
 
